@@ -1,0 +1,27 @@
+# Environment Variables
+.env
+
+# Virtual Environment
+.venv/
+venv/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Project Files
+memory.json
+uploaded.pdf
+long_term_memory.json
+documents/sample.pdf
+
+# Development Tooling
+.agents/
+.claude/
