@@ -178,3 +178,34 @@ uploaded.pdf
 ## 🎯 Project Goal
 
 This project was built as a hands-on exploration of Generative AI and Retrieval-Augmented Generation, focusing on understanding how different components of an AI assistant work together in practice.
+
+## Limitations
+
+- Response latency can be noticeable because each query may involve
+  query rewriting, embedding generation, vector retrieval, and LLM generation.
+
+- The application depends on the Gemini API and is subject to free-tier
+  quota and rate limits. Heavy usage may result in temporary API quota errors.
+
+- Conversation and long-term memory are currently stored in local JSON files.
+  This approach is suitable for development but is not designed for robust,
+  persistent multi-user deployment.
+
+- The current document pipeline primarily focuses on text-based PDFs and
+  does not yet provide dedicated OCR support for scanned documents.
+
+
+## Future Scope
+
+- Replace JSON-based memory with a persistent database such as PostgreSQL/Supabase.
+
+- Add user authentication and user-specific conversation/document memory.
+
+- Add OCR support for scanned and image-based documents.
+
+- Optimize the RAG pipeline to reduce response latency and unnecessary API calls.
+
+- Support additional document formats such as DOCX, TXT, images, and CSV.
+
+- Explore model and inference optimization for improved speed, reliability,
+  and scalability.
