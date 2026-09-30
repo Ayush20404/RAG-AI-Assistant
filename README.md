@@ -6,6 +6,18 @@ The project implements a Retrieval-Augmented Generation (RAG) pipeline with sema
 
 ---
 
+## 🚀 Live Demo
+
+Try the deployed application:
+
+**[RAG AI Assistant - Live Demo](https://rag-ai-assistant-j2fugsswqypaphtcy3fevy.streamlit.app/)**
+
+You can upload a PDF, ask document-related questions, test conversational follow-up questions, and also use the assistant for general queries.
+
+> **Note:** The application uses the Gemini API free tier, so temporary quota or rate-limit errors may occur during heavy usage.
+
+---
+
 ## ✨ Features
 
 - 💬 General conversational queries
