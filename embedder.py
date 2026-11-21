@@ -1,29 +1,33 @@
+
 from config import client
 from models import EMBEDDING_MODEL
 
 
-
-
-def create_embeddings(chunks):
+def create_embeddings(chunks, batch_size=32):
     """
-    Generates embeddings for all chunks.
+    Generates embeddings for multiple text chunks in batches.
+    Returns a list of embedding vectors in the original order.
     """
 
     embeddings = []
 
-    total = len(chunks)
+    if not chunks:
+        return embeddings
 
+    for i in range(0, len(chunks), batch_size):
 
-    for i, chunk in enumerate(chunks, start=1):
+        batch = chunks[i:i + batch_size]
 
         response = client.models.embed_content(
             model=EMBEDDING_MODEL,
-            contents=chunk
+            contents=batch
         )
 
-        embeddings.append(
-            response.embeddings[0].values
-        )
+        batch_embeddings = [
+            embedding.values
+            for embedding in response.embeddings
+        ]
 
+        embeddings.extend(batch_embeddings)
 
     return embeddings
