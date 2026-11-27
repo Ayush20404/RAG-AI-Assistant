@@ -6,7 +6,7 @@ from config import client
 from prompts import RAG_PROMPT
 
 from pdf_loader import load_pdf, load_pdf_pages
-from chunker import chunk_text, chunk_pages
+from chunker import chunk_text, chunk_pages, semantic_chunk_pages
 from embedder import create_embeddings
 from vector_store import create_vector_store
 from retriever import retrieve_chunks
@@ -16,6 +16,7 @@ from query_rewritter import rewrite_query
 
 from agent import decide_action
 
+from reranker import rerank_chunks
 
 
 
@@ -38,11 +39,21 @@ class RAGChatbot:
 
             print("\nCreating Chunks...")
 
-            self.chunks = chunk_text(self.text)
+            self.page_chunks = semantic_chunk_pages(self.pages)
+
+
+            self.chunks = [chunk["text"] for chunk in self.page_chunks]
 
             print(f"✓ {len(self.chunks)} Chunks Created")
 
-            self.page_chunks = chunk_pages(self.pages)
+
+            print("\n--- CHUNK ID MAPPING ---")
+
+            for idx, chunk in enumerate(self.page_chunks):
+                print(f"Chunk ID: {idx}")
+                print(f"Page: {chunk['page']}")
+                print(f"Text: {chunk['text'][:200]}")
+                print("-" * 50)
 
             print("\nGenerating Embeddings...")
 
@@ -128,16 +139,33 @@ class RAGChatbot:
             page_chunks=self.page_chunks
         )
 
-        
-
         if not retrieved_chunks:
             return "I couldn't find this information in the uploaded PDF."
 
         
 
+        print("\n--- BEFORE RERANKING ---")
+
+        for rank, chunk in enumerate(retrieved_chunks, start=1):
+            print(f"Rank {rank}: {chunk['text'][:150]}")
+
+        retrieved_chunks = rerank_chunks(
+            rewritten_query,
+            retrieved_chunks,
+            top_n=3
+        )
+
+        print("\n--- AFTER RERANKING ---")
+
+        for rank, chunk in enumerate(retrieved_chunks, start=1):
+            print(f"Rank {rank}: {chunk['text'][:150]}")
+            print(f"Rerank Score: {chunk['rerank_score']:.4f}")
+
+
+
         context = "\n\n".join(
-            f"Page {chunk['page']}:\n{chunk['text']}"
-            for chunk in retrieved_chunks
+                    f"Page {chunk['page']}:\n{chunk['text']}"
+                    for chunk in retrieved_chunks
         )
 
         conversation = ""
