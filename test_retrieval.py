@@ -56,6 +56,10 @@ print("\nCreating chunks...")
 chunks = chunk_text(text)
 page_chunks = chunk_pages(pages)
 
+for chunk in page_chunks:
+    chunk["source"] = pdf_path
+    chunk["document_type"] = "pdf"
+
 assert len(chunks) == len(page_chunks), "Chunk count mismatch!"
 
 for idx, chunk in enumerate(chunks):
@@ -85,6 +89,38 @@ embeddings = create_embeddings(chunks)
 print("\nBuilding FAISS index...")
 
 dense_index = create_vector_store(embeddings)
+
+
+# Metadata filtering test
+
+print("\nTesting Metadata Filtering...")
+
+filtered_results = retrieve_chunks(
+    query="Which technologies were used in the RAG AI Assistant project?",
+    index=dense_index,
+    chunks=chunks,
+    page_chunks=page_chunks,
+    metadata_filter={
+        "source": pdf_path,
+        "document_type": "pdf"
+    }
+)
+
+print("\nFiltered Results:")
+
+for item in filtered_results:
+    print(f"Chunk ID: {item['chunk_id']}")
+    print(f"Source: {item['source']}")
+    print(f"Document Type: {item['document_type']}")
+    print(f"Page: {item['page']}")
+
+assert all(
+    item["source"] == pdf_path
+    and item["document_type"] == "pdf"
+    for item in filtered_results
+)
+
+print("\nMetadata filtering test passed!")
 
 
 # -----------------------------------------

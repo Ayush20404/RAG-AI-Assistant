@@ -1,4 +1,6 @@
 
+from httpx2 import query
+
 from memory import save_memory, load_memory
 from long_term_memory import extract_memory, save_long_term_memory, load_long_term_memory
 
@@ -18,6 +20,8 @@ from agent import decide_action
 
 from reranker import rerank_chunks
 
+from query_expansion import expand_query
+
 
 
 
@@ -28,6 +32,8 @@ class RAGChatbot:
         self.history = load_memory()
 
         if pdf_path is not None:
+
+            self.pdf_path = pdf_path
 
             print("\nLoading PDF...")
 
@@ -41,6 +47,9 @@ class RAGChatbot:
 
             self.page_chunks = semantic_chunk_pages(self.pages)
 
+            for chunk in self.page_chunks:
+                chunk["source"] = pdf_path
+                chunk["document_type"] = "pdf"
 
             self.chunks = [chunk["text"] for chunk in self.page_chunks]
 
@@ -124,6 +133,7 @@ class RAGChatbot:
             return "Please upload a PDF to ask questions about a document."
         
 
+
         rewritten_query = rewrite_query(
             query,
             self.history
@@ -132,17 +142,47 @@ class RAGChatbot:
         print(f"\nOriginal query: {query}")
         print(f"Rewritten query: {rewritten_query}")
 
-        retrieved_chunks = retrieve_chunks(
-            query=rewritten_query,
-            index=self.index,
-            chunks=self.chunks,
-            page_chunks=self.page_chunks
-        )
+
+        # Generate alternative queries
+        expanded_queries = expand_query(rewritten_query)
+
+        print("\nExpanded Queries:")
+        for expanded_query in expanded_queries:
+            print(expanded_query)
+
+
+        # Retrieve chunks using original and expanded queries
+        all_queries = [rewritten_query] + expanded_queries
+
+        combined_chunks = {}
+
+        for search_query in all_queries:
+
+            results = retrieve_chunks(
+                query=search_query,
+                index=self.index,
+                chunks=self.chunks,
+                page_chunks=self.page_chunks,
+                metadata_filter={
+                    "source": self.pdf_path,
+                    "document_type": "pdf"
+                }
+            )
+
+            for chunk in results:
+                chunk_id = chunk["chunk_id"]
+
+                combined_chunks.setdefault(chunk_id, chunk)
+
+
+        # Remove duplicate chunks
+        retrieved_chunks = list(combined_chunks.values())
+
+        print(f"\nTotal unique chunks retrieved: {len(retrieved_chunks)}")
 
         if not retrieved_chunks:
             return "I couldn't find this information in the uploaded PDF."
 
-        
 
         print("\n--- BEFORE RERANKING ---")
 
