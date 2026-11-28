@@ -5,3 +5,4 @@ faiss-cpu
 numpy
 streamlit
 rank-bm25
+sentence-transformers
